@@ -183,7 +183,7 @@ void StartFonts() {
 
 		LOG(("[Tundra] Overriding font filenames..."));
 		auto i = 0;
-		while (!configFile.atEnd()) {
+		while (!configStream.atEnd()) {
 			QString configLine = configStream.readLine();
 			if (!configLine.isEmpty()) {
 				if (i > 5) {
@@ -199,13 +199,13 @@ void StartFonts() {
 			LOG(("[Tundra] Invalid font config file! First paragraph contains less than 6 lines!"));
 		}
 
-		while (configStream.readLine().isEmpty) {
+		while (!configStream.atEnd() && configStream.readLine().isEmpty()) {
 			// Skip empty lines
 		}
 
 		LOG(("[Tundra] Overriding font names..."));
 		i = 0;
-		while (!configFile.atEnd()) {
+		while (!configStream.atEnd()) {
 			QString configLine = configStream.readLine();
 			if (!configLine.isEmpty()) {
 				if (i > 5) {
