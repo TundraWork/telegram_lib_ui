@@ -11,6 +11,7 @@
 #include "ui/style/style_core_custom_font.h"
 #include "ui/integration.h"
 
+#include <QtCore/QFile>
 #include <QtCore/QMap>
 #include <QtCore/QVector>
 #include <QtGui/QFontInfo>
@@ -171,6 +172,60 @@ void StartFonts() {
 	}
 	Started = true;
 
+	bool CustomFont = false;
+	LOG("[Tundra] Loading font config file...");
+	QFile configFile("./font.cfg");
+	if (configFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+		LOG("[Tundra] Found font config file!");
+		CustomFont = true;
+		QTextStream configStream(&configFile);
+		if (configFile.is_open())
+		{
+			LOG("[Tundra] Overriding font filenames...");
+			auto i = 0;
+			while (!configFile.atEnd()) {
+				QString configLine = configStream.readLine();
+				if (!configLine.isEmpty()) {
+					if (i > 5) {
+						LOG("[Tundra] Invalid font config file! First paragraph contains more than 6 lines!");
+						break;
+					}
+					FontTypeFiles[i] = configLine;
+				} else {
+					break;
+				}
+			}
+			if (i < 5) {
+				LOG("[Tundra] Invalid font config file! First paragraph contains less than 6 lines!");
+				break;
+			}
+			while (configStream.readLine().isEmpty) {
+				// Skip empty lines
+			}
+			LOG("[Tundra] Overriding font names...");
+			i = 0;
+			while (!configFile.atEnd()) {
+				QString configLine = configStream.readLine();
+				if (!configLine.isEmpty()) {
+					if (i > 5) {
+						LOG("[Tundra] Invalid font config file! Second paragraph contains more than 6 lines!");
+						break;
+					}
+					FontTypeNames[i] = configLine;
+				} else {
+					break;
+				}
+			}
+			if (i < 5) {
+				LOG("[Tundra] Invalid font config file! Second paragraph contains less than 6 lines!");
+				break;
+			}
+		}
+		LOG("[Tundra] Done overriding fonts.");
+	} else {
+		LOG("[Tundra] Font config file not found.");
+	}
+
 	style_InitFontsResource();
 
 #ifndef DESKTOP_APP_USE_PACKAGED_FONTS
@@ -179,7 +234,11 @@ void StartFonts() {
 		const auto file = FontTypeFiles[i];
 		const auto name = FontTypeNames[i];
 		const auto flags = FontTypeFlags[i];
-		areGood[i] = LoadCustomFont(":/gui/fonts/" + file + ".ttf", name, flags);
+		if (CustomFont) {
+			areGood[i] = LoadCustomFont(file, name, flags);
+		} else {
+			areGood[i] = LoadCustomFont(":/gui/fonts/" + file + ".ttf", name, flags);
+		}
 		Overrides[i] = name;
 
 		const auto persianFallbackFile = FontTypePersianFallbackFiles[i];
