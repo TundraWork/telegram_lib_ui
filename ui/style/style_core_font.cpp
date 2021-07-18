@@ -13,6 +13,7 @@
 
 #include <QtCore/QFile>
 #include <QtCore/QMap>
+#include <QtCore/QTextStream>
 #include <QtCore/QVector>
 #include <QtGui/QFontInfo>
 #include <QtGui/QFontDatabase>
@@ -173,57 +174,55 @@ void StartFonts() {
 	Started = true;
 
 	bool CustomFont = false;
-	LOG("[Tundra] Loading font config file...");
+	LOG(("[Tundra] Loading font config file..."));
 	QFile configFile("./font.cfg");
-	if (configFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
-		LOG("[Tundra] Found font config file!");
+	if (configFile.open(QIODevice::ReadOnly)) {
+		LOG(("[Tundra] Found font config file!"));
 		CustomFont = true;
 		QTextStream configStream(&configFile);
-		if (configFile.is_open())
-		{
-			LOG("[Tundra] Overriding font filenames...");
-			auto i = 0;
-			while (!configFile.atEnd()) {
-				QString configLine = configStream.readLine();
-				if (!configLine.isEmpty()) {
-					if (i > 5) {
-						LOG("[Tundra] Invalid font config file! First paragraph contains more than 6 lines!");
-						break;
-					}
-					FontTypeFiles[i] = configLine;
-				} else {
+
+		LOG(("[Tundra] Overriding font filenames..."));
+		auto i = 0;
+		while (!configFile.atEnd()) {
+			QString configLine = configStream.readLine();
+			if (!configLine.isEmpty()) {
+				if (i > 5) {
+					LOG(("[Tundra] Invalid font config file! First paragraph contains more than 6 lines!"));
 					break;
 				}
-			}
-			if (i < 5) {
-				LOG("[Tundra] Invalid font config file! First paragraph contains less than 6 lines!");
-				break;
-			}
-			while (configStream.readLine().isEmpty) {
-				// Skip empty lines
-			}
-			LOG("[Tundra] Overriding font names...");
-			i = 0;
-			while (!configFile.atEnd()) {
-				QString configLine = configStream.readLine();
-				if (!configLine.isEmpty()) {
-					if (i > 5) {
-						LOG("[Tundra] Invalid font config file! Second paragraph contains more than 6 lines!");
-						break;
-					}
-					FontTypeNames[i] = configLine;
-				} else {
-					break;
-				}
-			}
-			if (i < 5) {
-				LOG("[Tundra] Invalid font config file! Second paragraph contains less than 6 lines!");
+				FontTypeFiles[i] = configLine;
+			} else {
 				break;
 			}
 		}
-		LOG("[Tundra] Done overriding fonts.");
+		if (i < 5) {
+			LOG(("[Tundra] Invalid font config file! First paragraph contains less than 6 lines!"));
+		}
+
+		while (configStream.readLine().isEmpty) {
+			// Skip empty lines
+		}
+
+		LOG(("[Tundra] Overriding font names..."));
+		i = 0;
+		while (!configFile.atEnd()) {
+			QString configLine = configStream.readLine();
+			if (!configLine.isEmpty()) {
+				if (i > 5) {
+					LOG(("[Tundra] Invalid font config file! Second paragraph contains more than 6 lines!"));
+					break;
+				}
+				FontTypeNames[i] = configLine;
+			} else {
+				break;
+			}
+		}
+		if (i < 5) {
+			LOG(("[Tundra] Invalid font config file! Second paragraph contains less than 6 lines!"));
+		}
+		LOG(("[Tundra] Done overriding fonts."));
 	} else {
-		LOG("[Tundra] Font config file not found.");
+		LOG(("[Tundra] Font config file not found."));
 	}
 
 	style_InitFontsResource();
